@@ -247,6 +247,10 @@ def main():
   except KeyError, e:
     print "[-] %s" % e
 
+  try:
+    print "timestamp: %s " % results['timestamp']
+  except KeyError, e:
+    print "[-] %s" % e
 
 
   ''' 
