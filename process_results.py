@@ -69,9 +69,10 @@ def main():
     print "[-] %s" % e
 
 
+  print 50*'-'
 
 
-  # Deep Nested Dictionary
+  # Deeply Nested Dictionary
   try:
     print "AutoPay: %s " % results['searchResult']['item'][0]['autoPay']
   except KeyError, e:
