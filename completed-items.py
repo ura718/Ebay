@@ -39,20 +39,19 @@ def main():
   except KeyError, e:
     print "[-] %s" % e
 
-  '''
-  try:
-    print "ItemId: %s " % results['searchResult']['item'][0]['itemId']
-    print "Top Rated Listing: %s " % results['searchResult']['item'][0]['topRatedListing']
-  except KeyError, e:
-    print "[-] %s" % e
-  '''
 
-
+  """
+   - Show me only those items that have been sold
+   - We are getting length of search result itmes which is an array. And we are looping through each element of that array.
+  """
   for i in range(len(results['searchResult']['item'])):
-    print "{0:3}) Top Rated: {1:5}, ItemId: {2:12}, Market: {3:7}, URL: {4}".format(i, \
+    if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales':
+      print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, URL: {6}".format(i, \
                                                                           results['searchResult']['item'][i]['topRatedListing'], \
-                                                                          results['searchResult']['item'][i]['itemId'], \
                                                                           results['searchResult']['item'][i]['globalId'], \
+                                                                          results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId'], \
+                                                                          results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value'], \
+                                                                          results['searchResult']['item'][i]['sellingStatus']['sellingState'], \
                                                                           results['searchResult']['item'][i]['viewItemURL'])
 
 if __name__ == '__main__':
