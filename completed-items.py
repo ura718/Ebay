@@ -13,8 +13,8 @@ def runAPI():
   # Reference config file to get APPID
   api = Finding(config_file='ebay.yaml')
 
-  # Show only completed items for specific category
-  api.execute('findCompletedItems', {'categoryId': '619'})
+  # Show only completed items for specific category 619
+  api.execute('findCompletedItems', {'categoryId': '20413'})
 
   results = api.response.dict()
   
@@ -46,15 +46,27 @@ def main():
   """
   for i in range(len(results['searchResult']['item'])):
     if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales' and results['searchResult']['item'][i]['topRatedListing'] == 'true':
-      print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, WatchCount: {7}, URL: {8}".format(i, \
+
+
+      # test watchcount for KeyError its when value of key is not present. If so assign default value of zero
+      try:
+        results['searchResult']['item'][i]['listingInfo']['watchCount']
+      except KeyError:
+        results['searchResult']['item'][i]['listingInfo']['watchCount'] = 0
+
+
+
+      print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, WatchCount: {7}".format(i, \
                                                                           results['searchResult']['item'][i]['topRatedListing'], \
                                                                           results['searchResult']['item'][i]['globalId'], \
                                                                           results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId'], \
                                                                           results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value'], \
                                                                           results['searchResult']['item'][i]['sellingStatus']['sellingState'], \
                                                                           results['searchResult']['item'][i]['listingInfo']['listingType'], \
-                                                                          results['searchResult']['item'][i]['listingInfo']['watchCount'], \
-                                                                          results['searchResult']['item'][i]['viewItemURL'])
+                                                                          results['searchResult']['item'][i]['listingInfo']['watchCount'])
+                                                                          
+      print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
+      print "-"*150
 
 if __name__ == '__main__':
   main()
