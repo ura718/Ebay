@@ -46,7 +46,7 @@ def main():
   """
   for i in range(len(results['searchResult']['item'])):
     if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales' and results['searchResult']['item'][i]['topRatedListing'] == 'true':
-      print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6},URL: {7}".format(i, \
+      print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, URL: {7}".format(i, \
                                                                           results['searchResult']['item'][i]['topRatedListing'], \
                                                                           results['searchResult']['item'][i]['globalId'], \
                                                                           results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId'], \
