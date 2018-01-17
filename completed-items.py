@@ -14,7 +14,13 @@ def runAPI():
   api = Finding(config_file='ebay.yaml')
 
   # Show only completed items for specific category 619
-  api.execute('findCompletedItems', {'categoryId': '20413'})
+  api.execute('findCompletedItems', {
+    'categoryId': '20413',
+    'itemFilter': [
+      {'name': 'MinPrice', 'value': '20'},
+      {'name': 'MaxPrice', 'value': '100'}
+    ]
+  })
 
   results = api.response.dict()
   
