@@ -16,12 +16,12 @@ try:
     'keywords': 'Python',
     'itemFilter' : [
       {'name': 'Condition', 'value': 'Used'},
-      {'name': 'MinPrice', 'value': '200', 'paramName': 'Currency', 'paramValue': 'GBP'},
-      {'name': 'MaxPrice', 'value': '400', 'paramName': 'Currency', 'paramValue': 'GBP'},
+      {'name': 'MinPrice', 'value': '200', 'paramName': 'Currency', 'paramValue': 'USD'},
+      {'name': 'MaxPrice', 'value': '400', 'paramName': 'Currency', 'paramValue': 'USD'},
     ],
     'pageinationInput': {
-      'entriesPerPage': '25',
-      'pageNumber': '1..5'
+      'entriesPerPage': '0..1',
+      'pageNumber': '0..1'
     },
     'sortOrder': 'CurrentPriceHighest'
 
