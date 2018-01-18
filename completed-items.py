@@ -77,11 +77,18 @@ def main():
                                       results['searchResult']['item'][i]['listingInfo']['watchCount'])
 
       print "{0:3}) Condition:  {1}".format(i, results['searchResult']['item'][i]['condition']['conditionDisplayName'])
-      print "{0:3}) Start Time: {1}".format(i, results['searchResult']['item'][i]['listingInfo']['startTime'])
-      print "{0:3}) End Time:   {1}".format(i, results['searchResult']['item'][i]['listingInfo']['endTime'])
+
+      # Extract Date and Time. Use replace() function to replace elements with spaces. Then grab first two elements date and time
+      (sDate, sTime) = (results['searchResult']['item'][i]['listingInfo']['startTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
+      (eDate, eTime) = (results['searchResult']['item'][i]['listingInfo']['endTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
+      print "{0:3}) Start Time: {1} {2}".format(i, sDate, sTime)
+      print "{0:3}) End Time:   {1} {2}".format(i, eDate, eTime)
+
 
       print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
       print "-"*150
+
+
 
 if __name__ == '__main__':
   main()
