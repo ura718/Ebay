@@ -15,11 +15,15 @@ def runAPI():
 
   # Show only completed items for specific category 619
   api.execute('findCompletedItems', {
-    'categoryId': '20413',
+    'categoryId': '100223',
     'itemFilter': [
       {'name': 'MinPrice', 'value': '20'},
-      {'name': 'MaxPrice', 'value': '100'}
-    ]
+      {'name': 'MaxPrice', 'value': '1000'}
+    ],
+    'paginationInput': {
+      'entriesPerPage': '100',
+      'pageNumber': '1'
+    }
   })
 
   results = api.response.dict()
@@ -51,7 +55,8 @@ def main():
    - We are getting length of search result itmes which is an array. And we are looping through each element of that array.
   """
   for i in range(len(results['searchResult']['item'])):
-    if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales' and results['searchResult']['item'][i]['topRatedListing'] == 'true':
+    #if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales' and results['searchResult']['item'][i]['topRatedListing'] == 'true':
+    if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales':
 
 
       # test watchcount for KeyError its when value of key is not present. If so assign default value of zero
@@ -63,14 +68,18 @@ def main():
 
 
       print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, WatchCount: {7}".format(i, \
-                                                                          results['searchResult']['item'][i]['topRatedListing'], \
-                                                                          results['searchResult']['item'][i]['globalId'], \
-                                                                          results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId'], \
-                                                                          results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value'], \
-                                                                          results['searchResult']['item'][i]['sellingStatus']['sellingState'], \
-                                                                          results['searchResult']['item'][i]['listingInfo']['listingType'], \
-                                                                          results['searchResult']['item'][i]['listingInfo']['watchCount'])
-                                                                          
+                                      results['searchResult']['item'][i]['topRatedListing'], \
+                                      results['searchResult']['item'][i]['globalId'], \
+                                      results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId'], \
+                                      results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value'], \
+                                      results['searchResult']['item'][i]['sellingStatus']['sellingState'], \
+                                      results['searchResult']['item'][i]['listingInfo']['listingType'], \
+                                      results['searchResult']['item'][i]['listingInfo']['watchCount'])
+
+      print "{0:3}) Condition:  {1}".format(i, results['searchResult']['item'][i]['condition']['conditionDisplayName'])
+      print "{0:3}) Start Time: {1}".format(i, results['searchResult']['item'][i]['listingInfo']['startTime'])
+      print "{0:3}) End Time:   {1}".format(i, results['searchResult']['item'][i]['listingInfo']['endTime'])
+
       print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
       print "-"*150
 
