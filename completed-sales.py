@@ -28,7 +28,7 @@ def CalculateDate(days):
   # Convert current time to epoch time
   epoch = int(time.time())
   
-  # Subtract 7 days from current epoch time, (e.g: seven days = 60 * 60 * 24 * 7 = 604800)
+  # Subtract x days from current epoch time, (e.g: seven days = 60 * 60 * 24 * 7 = 604800)
   minusDays = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(epoch - (60 * 60 * 24 * days)))
   
   return minusDays
@@ -56,14 +56,12 @@ def runAPI():
   api_request = {
     'categoryId': '100223',
     'itemFilter': [
-      {'name': 'MinPrice', 'value': '10'},                       # Minimum Price
-      {'name': 'MaxPrice', 'value': '1000'},                      # Maximum Price
-      {'name': 'SoldItemsOnly', 'value': 'True'},                 # Show only successfully sold items
-      {'name': 'LocatedIn', 'value': 'US'},                       # Located in United States
-      #{'name': 'StartTimeFrom', 'value': '2018-01-1T08:00:01'},  # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
-      #{'name': 'EndTimeTo', 'value': '2018-01-19T14:30:01'}       # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
-      {'name': 'StartTimeFrom', 'value': minusDays},  # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
-      {'name': 'EndTimeTo', 'value': nowTime}       # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
+      {'name': 'MinPrice', 'value': '10'},               # Minimum Price
+      {'name': 'MaxPrice', 'value': '1000'},             # Maximum Price
+      {'name': 'SoldItemsOnly', 'value': 'True'},        # Show only successfully sold items
+      {'name': 'LocatedIn', 'value': 'US'},              # Located in United States
+      {'name': 'StartTimeFrom', 'value': minusDays},     # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-1T08:00:01')
+      {'name': 'EndTimeTo', 'value': nowTime}            # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-19T14:30:01')
     ],
     'paginationInput': {
       'entriesPerPage': '100',
