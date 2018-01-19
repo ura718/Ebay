@@ -16,7 +16,7 @@ def GetResults():
 
   """ read findings file output and process its elements """
 
-  file='search.out'
+  file='findings.out'
   with open(file, 'rb') as f1:
     results = f1.read()
 

@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
+#
+# test finding api and write output to file
+#
+#
 
+import os
 from ebaysdk.finding import Connection as Finding
 from ebaysdk.exception import ConnectionError
 
@@ -36,8 +41,11 @@ except ConnectionError as e:
 
 
 
+# Get current running file without extention
+file = os.path.splitext(__file__)[0]
 
-with open('search.out', 'w') as f1:
+# Write output from api to file
+with open(file + '.out', 'w') as f1:
   f1.write('%s' % response)
 
 
@@ -48,8 +56,5 @@ for item in response['searchResult']['item']:
   #print "CategoryID: %s" % item['primaryCategory']['categoryId'].value
 
 '''
-
-
-
 
 
