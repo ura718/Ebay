@@ -13,8 +13,7 @@ def runAPI():
   # Reference config file to get APPID
   api = Finding(config_file='ebay.yaml')
 
-  # Show only completed items for specific category 619
-  api.execute('findCompletedItems', {
+  api_request = {
     'categoryId': '100223',
     'itemFilter': [
       {'name': 'MinPrice', 'value': '20'},
@@ -24,7 +23,10 @@ def runAPI():
       'entriesPerPage': '100',
       'pageNumber': '1'
     }
-  })
+  } 
+
+
+  api.execute('findCompletedItems', api_request)
 
   results = api.response.dict()
   
