@@ -14,25 +14,28 @@ from ebaysdk.finding import Connection as Finding
 from ebaysdk.exception import ConnectionError
 
 
+
+
 #################################################
 #
 # Run Finding API for Ebay to search for 
-# completed items
+# completed items that were sold
 #
 def runAPI():
   # Reference config file to get APPID
   api = Finding(config_file='config/ebay.yaml')
 
-  # Setup api_request options to pass to api execution
+
+  # Setup api_request options to later pass to api execution
   api_request = {
     'categoryId': '100223',
     'itemFilter': [
-      {'name': 'MinPrice', 'value': '20'},
-      {'name': 'MaxPrice', 'value': '1000'},
-      {'name': 'SoldItemsOnly', 'value': 'True'},
-      {'name': 'LocatedIn', 'value': 'US'},
-      {'name': 'StartTimeFrom', 'value': '2018-01-18T08:00:01'},  # Time in UTC format
-      {'name': 'EndTimeTo', 'value': '2018-01-19T14:30:01'}       # Time in UTC format
+      {'name': 'MinPrice', 'value': '200'},                       # Minimum Price
+      {'name': 'MaxPrice', 'value': '1000'},                      # Maximum Price
+      {'name': 'SoldItemsOnly', 'value': 'True'},                 # Show only successfully sold items
+      {'name': 'LocatedIn', 'value': 'US'},                       # Located in United States
+      {'name': 'StartTimeFrom', 'value': '2018-01-18T08:00:01'},  # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
+      {'name': 'EndTimeTo', 'value': '2018-01-19T14:30:01'}       # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
     ],
     'paginationInput': {
       'entriesPerPage': '100',
@@ -79,8 +82,6 @@ def main():
 
 
   for i in range(len(results['searchResult']['item'])):
-    #if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales':
-
 
       # Test watchcount for KeyError (its when value of key is not present). If so assign default value of zero
       try:
@@ -112,11 +113,6 @@ def main():
       (endDate, endTime) = (results['searchResult']['item'][i]['listingInfo']['endTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
       print "{0:3}) Start Time: {1} {2}".format(i, startDate, startTime)
       print "{0:3}) End Time:   {1} {2}".format(i, endDate, endTime)
-
-      '''
-      print "{0:3}) Start Time: {1}".format(i, results['searchResult']['item'][i]['listingInfo']['startTime'])
-      print "{0:3}) End Time:   {1}".format(i, results['searchResult']['item'][i]['listingInfo']['endTime'])
-      '''
 
 
       print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
