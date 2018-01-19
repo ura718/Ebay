@@ -3,7 +3,7 @@
 
 
 #
-# Test printing out elements from dictionary results{} 
+# Test printing out elements from local dictionary results{} 
 # print examples on how to target specific items
 #
 #
