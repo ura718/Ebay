@@ -1,17 +1,37 @@
 #!/usr/bin/python
 
+# -*- coding: utf-8 -*-
 
-#
-# Author: Yuri Medvinsky
-# Info: Use ebay api to search for completed items that were sold on ebay.
-#  Then print out information pertaining to those listings.
-#
-
+'''
+Author: Yuri Medvinsky
+Info: 
+  Use ebay api to search for completed items that were sold on ebay.
+  Then print out information pertaining to those listings.
+'''
 
 
 
 from ebaysdk.finding import Connection as Finding
 from ebaysdk.exception import ConnectionError
+import datetime
+import time
+
+
+
+
+#################################################
+#
+# Subtract x number of days from today and return value
+#
+def CalculateDate(days):
+
+  # Convert current time to epoch time
+  epoch = int(time.time())
+  
+  # Subtract 7 days from current epoch time, (e.g: seven days = 60 * 60 * 24 * 7 = 604800)
+  minusDays = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(epoch - (60 * 60 * 24 * days)))
+  
+  return minusDays
 
 
 
@@ -26,20 +46,29 @@ def runAPI():
   api = Finding(config_file='config/ebay.yaml')
 
 
+  page = 1
+  days = 1
+  minusDays = CalculateDate(days)
+  nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
+
+
   # Setup api_request options to later pass to api execution
   api_request = {
     'categoryId': '100223',
     'itemFilter': [
-      {'name': 'MinPrice', 'value': '200'},                       # Minimum Price
+      {'name': 'MinPrice', 'value': '10'},                       # Minimum Price
       {'name': 'MaxPrice', 'value': '1000'},                      # Maximum Price
       {'name': 'SoldItemsOnly', 'value': 'True'},                 # Show only successfully sold items
       {'name': 'LocatedIn', 'value': 'US'},                       # Located in United States
-      {'name': 'StartTimeFrom', 'value': '2018-01-18T08:00:01'},  # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
-      {'name': 'EndTimeTo', 'value': '2018-01-19T14:30:01'}       # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
+      #{'name': 'StartTimeFrom', 'value': '2018-01-1T08:00:01'},  # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
+      #{'name': 'EndTimeTo', 'value': '2018-01-19T14:30:01'}       # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
+      {'name': 'StartTimeFrom', 'value': minusDays},  # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
+      {'name': 'EndTimeTo', 'value': nowTime}       # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time)
     ],
     'paginationInput': {
       'entriesPerPage': '100',
-      'pageNumber': '1'
+      'pageNumber': page
+      #'pageNumber': '1'
     }
   } 
 
@@ -58,7 +87,7 @@ def runAPI():
 
 
 def main():
-
+ 
   results = runAPI()
 
   
@@ -80,8 +109,8 @@ def main():
    - Get length of array item, and loop through each element of that array.
   """
 
-
-  for i in range(len(results['searchResult']['item'])):
+  try:
+    for i in range(len(results['searchResult']['item'])):
 
       # Test watchcount for KeyError (its when value of key is not present). If so assign default value of zero
       try:
@@ -117,6 +146,12 @@ def main():
 
       print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
       print "-"*150
+
+  except KeyError, e:
+    print "No Search Results Found"
+    print "Try to adjust itemFilter options"
+    print e
+
 
 
 
