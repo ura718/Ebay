@@ -53,22 +53,26 @@ def main():
 
 
   """
-   - Show me only those items that have been sold from top sellers
-   - We are getting length of search result itmes which is an array. And we are looping through each element of that array.
+   - Show me only those items that have been sold
+   - Get length of array item, and loop through each element of that array.
   """
   for i in range(len(results['searchResult']['item'])):
-    #if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales' and results['searchResult']['item'][i]['topRatedListing'] == 'true':
     if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales':
 
 
-      # test watchcount for KeyError its when value of key is not present. If so assign default value of zero
+      # Test watchcount for KeyError (its when value of key is not present). If so assign default value of zero
       try:
         results['searchResult']['item'][i]['listingInfo']['watchCount']
       except KeyError:
         results['searchResult']['item'][i]['listingInfo']['watchCount'] = 0
 
 
+      # Print Category ID and Name
+      print "{0:3}) CategoryID: {1}, Category Name: {2}".format(i, \
+                                      results['searchResult']['item'][i]['primaryCategory']['categoryId'], \
+                                      results['searchResult']['item'][i]['primaryCategory']['categoryName'])
 
+      # Print selected items from finding api
       print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, WatchCount: {7}".format(i, \
                                       results['searchResult']['item'][i]['topRatedListing'], \
                                       results['searchResult']['item'][i]['globalId'], \
