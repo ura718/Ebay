@@ -23,6 +23,7 @@ def runAPI():
   # Reference config file to get APPID
   api = Finding(config_file='config/ebay.yaml')
 
+  # Setup api_request options to pass to api execution
   api_request = {
     'categoryId': '100223',
     'itemFilter': [
@@ -36,8 +37,11 @@ def runAPI():
   } 
 
 
+
+  # Execute against findCompletedItems with designated api_request options
   api.execute('findCompletedItems', api_request)
 
+  # Return results as json form dictionary
   results = api.response.dict()
   
   return results
@@ -50,19 +54,26 @@ def main():
 
   results = runAPI()
 
-  # Display total pages, entries, number of pages and entries per page
+  
+  # HEADING: Display total pages, entries, number of pages and entries per page
   try:
     print "Ack: %s " % results['ack']
     print "Timestamp: %s " % results['timestamp']
     print "Version: %s " % results['version']
+    print
+    print "-"*150
   except KeyError, e:
     print "[-] %s" % e
+
+
 
 
   """
    - Show me only those items that have been sold
    - Get length of array item, and loop through each element of that array.
   """
+
+
   for i in range(len(results['searchResult']['item'])):
     if results['searchResult']['item'][i]['sellingStatus']['sellingState'] == 'EndedWithSales':
 
@@ -92,10 +103,10 @@ def main():
       print "{0:3}) Condition:  {1}".format(i, results['searchResult']['item'][i]['condition']['conditionDisplayName'])
 
       # Extract Date and Time. Use replace() function to replace elements with spaces. Then grab first two elements date and time
-      (sDate, sTime) = (results['searchResult']['item'][i]['listingInfo']['startTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
-      (eDate, eTime) = (results['searchResult']['item'][i]['listingInfo']['endTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
-      print "{0:3}) Start Time: {1} {2}".format(i, sDate, sTime)
-      print "{0:3}) End Time:   {1} {2}".format(i, eDate, eTime)
+      (startDate, startTime) = (results['searchResult']['item'][i]['listingInfo']['startTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
+      (endDate, endTime) = (results['searchResult']['item'][i]['listingInfo']['endTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
+      print "{0:3}) Start Time: {1} {2}".format(i, startDate, startTime)
+      print "{0:3}) End Time:   {1} {2}".format(i, endDate, endTime)
 
 
       print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
