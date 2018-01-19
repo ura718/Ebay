@@ -1,5 +1,15 @@
 #!/usr/bin/python
 
+
+#
+# Author: Yuri Medvinsky
+# Info: Use ebay api to search for completed items that were sold on ebay.
+#  Then print out information pertaining to those listings.
+#
+
+
+
+
 from ebaysdk.finding import Connection as Finding
 from ebaysdk.exception import ConnectionError
 
@@ -34,9 +44,6 @@ def runAPI():
 
 
 
-'''
-{'ack': 'Success', 'timestamp': '2018-01-17T05:38:38.040Z', 'version': '1.13.0', 'searchResult': {'item': [{'itemId': '172986666895', 'topRatedListing': 'false', 'globalId': 'EBAY-US', 'title': u'Pioneer stereo turntable PL-70L\u2161', 'country': 'JP', 'primaryCategory': {'categoryId': '48460', 'categoryName': 'DJ Turntables'}, 'autoPay': 'false', 'galleryURL': 'http://thumbs4.ebaystatic.com/m/mvahl02AsBVZqXx8ctbAr_g/140.jpg', 'shippingInfo': {'expeditedShipping': 'false', 'shipToLocations': 'Worldwide', 'shippingServiceCost': {'_currencyId': 'USD', 'value': '178.0'}, 'oneDayShippingAvailable': 'false', 'handlingTime': '10', 'shippingType': 'Flat'}, 'location': 'Japan', 'returnsAccepted': 'true', 'viewItemURL': 'http://www.ebay.com/itm/Pioneer-stereo-turntable-PL-70L-/172986666895', 'sellingStatus': {'currentPrice': {'_currencyId': 'USD', 'value': '2650.0'}, 'convertedCurrentPrice': {'_currencyId': 'USD', 'value': '2650.0'}, 'sellingState': 'EndedWithoutSales'}, 'paymentMethod': 'PayPal', 'isMultiVariationListing': 'false', 'condition': {'conditionId': '3000', 'conditionDisplayName': 'Used'}, 'listingInfo': {'listingType': 'FixedPrice', 'gift': 'false', 'bestOfferEnabled': 'true', 'watchCount': '3', 'startTime': '2017-11-18T05:09:45.000Z', 'buyItNowAvailable': 'false', 'endTime': '2018-01-17T05:37:40.000Z'}}
-'''
 
 
 def main():
