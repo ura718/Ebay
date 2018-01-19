@@ -15,9 +15,7 @@ try:
   
   api = Finding(config_file='ebay.yaml')
 
-
-  # Execute the HTTP request
-  response = api.execute('findItemsAdvanced', {
+  api_dictionary = {
     'keywords': 'Python',
     'itemFilter' : [
       {'name': 'Condition', 'value': 'Used'},
@@ -30,8 +28,15 @@ try:
     },
     'sortOrder': 'CurrentPriceHighest'
 
-  })
-  
+  }
+
+
+
+  # Execute api HTTP request to ebay and provide dictionary parameters
+  response = api.execute('findItemsAdvanced', api_dictionary)
+ 
+
+ 
   # Return diction of the HTTP response
   response = response.dict()
 
