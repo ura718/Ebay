@@ -21,7 +21,7 @@ from ebaysdk.exception import ConnectionError
 #
 def runAPI():
   # Reference config file to get APPID
-  api = Finding(config_file='ebay.yaml')
+  api = Finding(config_file='config/ebay.yaml')
 
   api_request = {
     'categoryId': '100223',
