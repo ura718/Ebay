@@ -13,7 +13,7 @@ from ebaysdk.exception import ConnectionError
 
 try:
   
-  api = Finding(config_file='config/ebay.yaml')
+  api = Finding(config_file='../config/ebay.yaml')
 
   api_dictionary = {
     'keywords': 'Python',

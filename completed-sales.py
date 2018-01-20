@@ -46,17 +46,19 @@ def runAPI():
   api = Finding(config_file='config/ebay.yaml')
 
 
-  page = 1
-  days = 1
-  minusDays = CalculateDate(days)
-  nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
+  page = 1    # range can be from 1 to 100, but you will need to loop over each page if greater than one
+  days = 5    # number of days to subtract from today 
 
+  minusDays = CalculateDate(days)                              # date and time today minus number of days
+  nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())  # date and time today
+
+  
 
   # Setup api_request options to later pass to api execution
   api_request = {
-    'categoryId': '100223',
+    'categoryId': '15687',
     'itemFilter': [
-      {'name': 'MinPrice', 'value': '10'},               # Minimum Price
+      {'name': 'MinPrice', 'value': '30'},               # Minimum Price
       {'name': 'MaxPrice', 'value': '1000'},             # Maximum Price
       {'name': 'SoldItemsOnly', 'value': 'True'},        # Show only successfully sold items
       {'name': 'LocatedIn', 'value': 'US'},              # Located in United States
@@ -84,16 +86,35 @@ def runAPI():
 
 
 
+#################################################
+#
+# Write to File
+# 
+def WriteToFile(categoryName, categoryId, itemId, currencyValue, viewItemURL):
+
+
+  # Write to file
+  with open('listings.txt', 'a') as f:
+    f.write("{0}, {1}, {2}, {3:5}, {4}\n".format(categoryName, categoryId, itemId, currencyValue, viewItemURL))
+
+
+
+
+
 def main():
  
   results = runAPI()
 
+  # Empty out the file
+  open('listings.txt', 'w').close()
+ 
+ 
   
   # HEADING: Display total pages, entries, number of pages and entries per page
   try:
-    print "Ack: %s " % results['ack']
+    print "Ack: %s       " % results['ack']
     print "Timestamp: %s " % results['timestamp']
-    print "Version: %s " % results['version']
+    print "Version: %s   " % results['version']
     print
     print "-"*150
   except KeyError, e:
@@ -112,38 +133,66 @@ def main():
 
       # Test watchcount for KeyError (its when value of key is not present). If so assign default value of zero
       try:
-        results['searchResult']['item'][i]['listingInfo']['watchCount']
+        watchCount = results['searchResult']['item'][i]['listingInfo']['watchCount']
       except KeyError:
-        results['searchResult']['item'][i]['listingInfo']['watchCount'] = 0
+        watchCount = results['searchResult']['item'][i]['listingInfo']['watchCount'] = 0
+
+
+
+      ''' Definitions 
+      '''
+      itemId               = results['searchResult']['item'][i]['itemId']
+      categoryId           = results['searchResult']['item'][i]['primaryCategory']['categoryId']
+      categoryName         = results['searchResult']['item'][i]['primaryCategory']['categoryName']
+      topRatedListing      = results['searchResult']['item'][i]['topRatedListing']
+      globalId             = results['searchResult']['item'][i]['globalId']
+      currencyId           = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId']
+      currencyValue        = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value']
+      sellingState         = results['searchResult']['item'][i]['sellingStatus']['sellingState']
+      listingType          = results['searchResult']['item'][i]['listingInfo']['listingType']
+      conditionDisplayName = results['searchResult']['item'][i]['condition']['conditionDisplayName']
+      startTime            = results['searchResult']['item'][i]['listingInfo']['startTime']
+      endTime              = results['searchResult']['item'][i]['listingInfo']['endTime']
+      viewItemURL          = results['searchResult']['item'][i]['viewItemURL']
+
+
 
 
       # Print Category ID and Name
-      print "{0:3}) CategoryID: {1}, Category Name: {2}".format(i, \
-                                      results['searchResult']['item'][i]['primaryCategory']['categoryId'], \
-                                      results['searchResult']['item'][i]['primaryCategory']['categoryName'])
+      print "{0:3}) CategoryID: {1}, Category Name: {2}".format(i, categoryId, categoryName)
+                                      
+                                     
 
       # Print selected items from finding api
       print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, WatchCount: {7}".format(i, \
-                                      results['searchResult']['item'][i]['topRatedListing'], \
-                                      results['searchResult']['item'][i]['globalId'], \
-                                      results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId'], \
-                                      results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value'], \
-                                      results['searchResult']['item'][i]['sellingStatus']['sellingState'], \
-                                      results['searchResult']['item'][i]['listingInfo']['listingType'], \
-                                      results['searchResult']['item'][i]['listingInfo']['watchCount'])
+                                      topRatedListing, \
+                                      globalId, \
+                                      currencyId, \
+                                      currencyValue, \
+                                      sellingState, \
+                                      listingType, \
+                                      watchCount)
 
-      print "{0:3}) Condition:  {1}".format(i, results['searchResult']['item'][i]['condition']['conditionDisplayName'])
+      print "{0:3}) Condition:  {1}".format(i, conditionDisplayName)
 
 
       # Extract Date and Time. Use replace() function to replace elements with spaces. Then grab first two elements date and time
-      (startDate, startTime) = (results['searchResult']['item'][i]['listingInfo']['startTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
-      (endDate, endTime) = (results['searchResult']['item'][i]['listingInfo']['endTime']).replace('T', ' ').replace('.', ' ').split()[0:2]
+      (startDate, startTime) = (startTime).replace('T', ' ').replace('.', ' ').split()[0:2]
+      (endDate, endTime)     =   (endTime).replace('T', ' ').replace('.', ' ').split()[0:2]
+
       print "{0:3}) Start Time: {1} {2}".format(i, startDate, startTime)
       print "{0:3}) End Time:   {1} {2}".format(i, endDate, endTime)
 
 
-      print "{0:3}) {1}".format(i, results['searchResult']['item'][i]['viewItemURL'])
+      # URL
+      print "{0:3}) {1}".format(i, viewItemURL)
       print "-"*150
+
+
+
+      # Write to File
+      WriteToFile(categoryName, categoryId, itemId, currencyValue, viewItemURL)
+
 
   except KeyError, e:
     print "No Search Results Found"
