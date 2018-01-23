@@ -13,6 +13,7 @@ Info:
 
 from ebaysdk.finding import Connection as Finding
 from ebaysdk.exception import ConnectionError
+from optparse import OptionParser
 import datetime
 import time
 import sys
@@ -24,10 +25,29 @@ import pprint
 
 #################################################
 #
+# Help Menu
+#
+def menu():
+  usage = "usage: %prog -c [category number]"
+  parser = OptionParser(usage=usage)
+  parser.add_option("-c", action="store", type="int", dest="CategoryID")
+  parser.add_option("-d", action="store", type="int", dest="days")
+
+  (options, args) = parser.parse_args()
+
+  return options.CategoryID, options.days
+
+
+
+
+
+
+#################################################
+#
 # Run Finding API for Ebay to search for 
 # completed items that were sold
 #
-def runAPI(page, numEntriesPerPage, minusDays, nowTime):
+def runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID):
 
 
   ### Reference config file to get APPID
@@ -37,7 +57,7 @@ def runAPI(page, numEntriesPerPage, minusDays, nowTime):
 
   # Setup api_request options to later pass to api execution
   api_request = {
-    'categoryId': '15687',
+    'categoryId': categoryID,
     'itemFilter': [
       {'name': 'MinPrice',      'value': '30'},          # Minimum Price
       {'name': 'MaxPrice',      'value': '1000'},        # Maximum Price
@@ -90,12 +110,12 @@ def CalculateDate(days):
 #
 # Write to File
 # 
-def WriteToFile(categoryName, categoryId, itemId, currencyValue, viewItemURL):
+def WriteToFile(categoryId, categoryName, itemId, currencyValue, viewItemURL):
 
 
   ### Write to file
-  with open('listings.txt', 'a') as f:
-    f.write("{0}, {1}, {2}, {3:5}, {4}\n".format(categoryName, categoryId, itemId, currencyValue, viewItemURL))
+  with open('short-listings.txt', 'a') as f:
+    f.write("{0}, {1}, {2}, {3:5}, {4}\n".format(categoryId, categoryName, itemId, currencyValue, viewItemURL))
 
 
 
@@ -205,7 +225,7 @@ def showResults(results):
 
 
       ### Save data to file
-      WriteToFile(categoryName, categoryId, itemId, currencyValue, viewItemURL)
+      WriteToFile(categoryId, categoryName, itemId, currencyValue, viewItemURL)
 
 
   except KeyError, e:
@@ -218,16 +238,22 @@ def showResults(results):
 
 def main():
 
+  (categoryID, days)=menu()
+
+  if categoryID == None:
+      print "Provide category ID"
+      sys.exit()
+
+
+  ### The days variable is used to deduct number of days from today
+  if days == None:
+      print "Provide number of days you want to search for"
+      sys.exit()
+
 
   ### Create Empty File
-  open('listings.txt', 'w').close()
+  open('short-listings.txt', 'w').close()
 
-
-
-  ### The page variable is used to retreive page number
-  ### The days variable is used to deduct number of days from today
-  page = 1
-  days = 2
 
 
   ### Calculate From Date the time from which to search
@@ -238,9 +264,13 @@ def main():
   nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())  
 
 
+  ### The page variable is used to retreive page number
+  page = 1
+
   ### Qeury api to understand how many pages exist by sampling page header
   numEntriesPerPage = 100
-  results = runAPI(page, numEntriesPerPage, minusDays, nowTime)
+
+  results = runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID)
 
 
 
@@ -257,11 +287,12 @@ def main():
 
 
 
+
   ### Now loop through total number of pages and get all sold items per page
   for page in range(1, totalPages+1):
 
     ### Get API Results
-    results = runAPI(page, numEntriesPerPage, minusDays, nowTime)
+    results = runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID)
 
  
     ### Get Page Number 
@@ -281,10 +312,6 @@ def main():
 
 
     '''
-    print "{0}, {1}".format(results['searchResult']['item'][0]['itemId'], results['searchResult']['item'][0]['viewItemURL'])
-    results = runAPI(page=2, days=5, numEntriesPerPage=100)
-    print "{0}, {1}".format(results['searchResult']['item'][0]['itemId'], results['searchResult']['item'][0]['viewItemURL'])
-
     pp = pprint.PrettyPrinter(indent=1)
     pp.pprint(results)
     '''
