@@ -5,7 +5,7 @@
 '''
 Author: Yuri Medvinsky
 Info: 
-  Use ebay api to search for completed items that were sold on ebay.
+  ise ebay api to search for completed items that were sold on ebay.
   Then print out information pertaining to those listings.
 '''
 
@@ -15,9 +15,10 @@ from ebaysdk.finding import Connection as Finding
 from ebaysdk.exception import ConnectionError
 from optparse import OptionParser
 import datetime
+import pprint
 import time
 import sys
-import pprint
+import os
 
 
 
@@ -47,7 +48,7 @@ def menu():
 # Run Finding API for Ebay to search for 
 # completed items that were sold
 #
-def runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID):
+def runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID):
 
 
   ### Reference config file to get APPID
@@ -63,7 +64,7 @@ def runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID):
       {'name': 'MaxPrice',      'value': '1000'},        # Maximum Price
       {'name': 'SoldItemsOnly', 'value': 'True'},        # Show only successfully sold items
       {'name': 'LocatedIn',     'value': 'US'},          # Located in United States
-      {'name': 'StartTimeFrom', 'value': minusDays},     # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-1T08:00:01')
+      {'name': 'StartTimeFrom', 'value': earlierDay},    # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-1T08:00:01')
       {'name': 'EndTimeTo',     'value': nowTime}        # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-19T14:30:01')
     ],
     'paginationInput': {
@@ -89,17 +90,35 @@ def runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID):
 
 #################################################
 #
-# Subtract x number of days from today and return value
+# Take current date/time and subtrace given time days
 #
 def CalculateDate(days):
 
-  ### Convert current time to epoch time
-  epoch = int(time.time())
-  
-  ### Subtract x days from current epoch time, (e.g: seven days = 60 * 60 * 24 * 7 = 604800)
-  minusDays = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(epoch - (60 * 60 * 24 * days)))
-  
-  return minusDays
+  earlierDay = datetime.datetime.now() - datetime.timedelta(days=days, hours=0, minutes=0, seconds=0)
+  earlierDay = earlierDay.strftime("%Y-%m-%dT%H:%M:%S")
+
+  return earlierDay
+
+
+
+
+
+#################################################
+#
+# Calculate how long it took to sell an item
+#
+def calculateSoldTime(startTime, endTime):
+
+  startTime = ' '.join((startTime).replace('T', ' ').replace('.', ' ').split()[0:2])
+  endTime   = ' '.join((endTime).replace('T', ' ').replace('.', ' ').split()[0:2])
+
+  startTime = datetime.datetime.strptime(startTime, '%Y-%m-%d %H:%M:%S')
+  endTime   = datetime.datetime.strptime(endTime, '%Y-%m-%d %H:%M:%S')
+
+  soldTime = endTime - startTime
+
+
+  return soldTime
 
 
 
@@ -110,16 +129,17 @@ def CalculateDate(days):
 #
 # Write to File
 # 
-def WriteToFile(categoryId, categoryName, itemId, currencyValue, viewItemURL):
+def writeToFile(data, totalSoldTime, File):
 
 
   ### Write to file
-  with open('short-listings.txt', 'a') as f:
-    f.write("{0}, {1}, {2}, {3:5}, {4}\n".format(categoryId, categoryName, itemId, currencyValue, viewItemURL))
-
-
-
-
+  with open(File, 'a') as f:
+    f.write("{0}, {1}, {2}, {3:7}, [{4:16}], {5}\n".format(data['categoryId'], \
+                                                 data['categoryName'], \
+                                                 data['itemId'], \
+                                                 data['currencyValue'], \
+                                                 totalSoldTime, \
+                                                 data['viewItemURL']))
 
 
 
@@ -147,102 +167,94 @@ def getHEADER(results):
 
 
 
-
-
-
  
 #################################################
 #
-# Show results from ebay
+# Show results from ebay that have been sold
 #
-def showResults(results): 
+def showResults(results, File): 
   
 
-  """
-   - Show me only those items that have been sold
-   - Get length of array item, and loop through each element of that array.
-  """
+  
+  ### The (results['searchResult']['item']) is an array that holds many searches. 
+  ### We loop through this array and extract elements that we can work with
+ 
 
-  try:
-    for i in range(len(results['searchResult']['item'])):
+  data = {}   
+  for i in range(len(results['searchResult']['item'])):
+    try:
+      data['itemId']               = results['searchResult']['item'][i]['itemId']
+      data['categoryId']           = results['searchResult']['item'][i]['primaryCategory']['categoryId']
+      data['categoryName']         = results['searchResult']['item'][i]['primaryCategory']['categoryName']
+      data['topRatedListing']      = results['searchResult']['item'][i]['topRatedListing']
+      data['globalId']             = results['searchResult']['item'][i]['globalId']
+      data['currencyId']           = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId']
+      data['currencyValue']        = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value']
+      data['sellingState']         = results['searchResult']['item'][i]['sellingStatus']['sellingState']
+      data['listingType']          = results['searchResult']['item'][i]['listingInfo']['listingType']
+      data['conditionDisplayName'] = results['searchResult']['item'][i]['condition']['conditionDisplayName']
+      data['startTime']            = results['searchResult']['item'][i]['listingInfo']['startTime']
+      data['endTime']              = results['searchResult']['item'][i]['listingInfo']['endTime']
+      data['watchCount']           = results['searchResult']['item'][i]['listingInfo']['watchCount']
+      data['viewItemURL']          = results['searchResult']['item'][i]['viewItemURL']
 
-      ### Test watchcount for KeyError (its when value of key is not present). If so assign default value of zero
-      try:
-        watchCount = results['searchResult']['item'][i]['listingInfo']['watchCount']
-      except KeyError:
-        watchCount = results['searchResult']['item'][i]['listingInfo']['watchCount'] = 0
-
-
-
-      ### Definitions 
-      itemId               = results['searchResult']['item'][i]['itemId']
-      categoryId           = results['searchResult']['item'][i]['primaryCategory']['categoryId']
-      categoryName         = results['searchResult']['item'][i]['primaryCategory']['categoryName']
-      topRatedListing      = results['searchResult']['item'][i]['topRatedListing']
-      globalId             = results['searchResult']['item'][i]['globalId']
-      currencyId           = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['_currencyId']
-      currencyValue        = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value']
-      sellingState         = results['searchResult']['item'][i]['sellingStatus']['sellingState']
-      listingType          = results['searchResult']['item'][i]['listingInfo']['listingType']
-      conditionDisplayName = results['searchResult']['item'][i]['condition']['conditionDisplayName']
-      startTime            = results['searchResult']['item'][i]['listingInfo']['startTime']
-      endTime              = results['searchResult']['item'][i]['listingInfo']['endTime']
-      viewItemURL          = results['searchResult']['item'][i]['viewItemURL']
+    except KeyError:
+      continue
 
 
 
 
-      ### Print Category ID and Name
-      print "{0:3}) CategoryID: {1}, Category Name: {2}".format(i, categoryId, categoryName)
-                                      
-                                     
-
-      ### Print selected items from finding api
-      print "{0:3}) Top Rated: {1:5}, Market: {2:7}, Currency: {3:3}, Price: {4}, Selling State: {5}, Listing: {6}, WatchCount: {7}".format(i, \
-                                      topRatedListing, \
-                                      globalId, \
-                                      currencyId, \
-                                      currencyValue, \
-                                      sellingState, \
-                                      listingType, \
-                                      watchCount)
-
-      print "{0:3}) Condition:  {1}".format(i, conditionDisplayName)
-
-
-      ### Extract Date and Time. Use replace() function to replace elements with spaces. Then grab first two elements date and time
-      (startDate, startTime) = (startTime).replace('T', ' ').replace('.', ' ').split()[0:2]
-      (endDate, endTime)     =   (endTime).replace('T', ' ').replace('.', ' ').split()[0:2]
-
-      print "{0:3}) Start Time: {1} {2}".format(i, startDate, startTime)
-      print "{0:3}) End Time:   {1} {2}".format(i, endDate, endTime)
-
-
-      ### URL
-      print "{0:3}) {1}".format(i, viewItemURL)
-      print "-"*150
+    ### Calculate how long it took to sell the item
+    try:
+      totalSoldTime = calculateSoldTime((data['startTime']), (data['endTime']))
+    except:
+      continue
 
 
 
-      ### Save data to file
-      WriteToFile(categoryId, categoryName, itemId, currencyValue, viewItemURL)
+    ### Save data to file
+    writeToFile(data, totalSoldTime, File)
+  
+
+     
 
 
-  except KeyError, e:
-    print "No Search Results Found"
-    print "Try to adjust itemFilter options"
-    print e
+
+
+def getCategoryIDFromFile():
+  print "Reading Category ID File"
+  if os.path.isfile('categoryid.txt') == True:
+    with open('categoryid.txt') as f:
+      content = f.readlines()
+
+      categoryID = {}
+      for i in content:
+        i = ''.join(i.split())
+        categoryID[i.split(',')[0]] = i.split(',')[1]
+
+
+  return categoryID
+
+
 
 
 
 
 def main():
 
+  ### Receive options from user input
   (categoryID, days)=menu()
 
+
+  ### If categoryID is not provided by user, access file and store in hash
   if categoryID == None:
-      print "Provide category ID"
-      sys.exit()
+    categoryID = getCategoryIDFromFile()
+
+    #for k,v in categoryID.iteritems():
+    #  print k,v 
+
+
+
 
 
   ### The days variable is used to deduct number of days from today
@@ -251,48 +263,69 @@ def main():
       sys.exit()
 
 
+
+
   ### Create Empty File
-  open('short-listings.txt', 'w').close()
+  File = 'short-listings.txt'
+  open(File, 'w').close()
 
 
 
   ### Calculate From Date the time from which to search
-  minusDays = CalculateDate(days)                              
+  earlierDay = CalculateDate(days)                              
 
 
   ### Calculate Todays Date and Time or time to which to search
-  nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())  
+  #nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())  
+  #print "nowTime:    |{0}|".format(nowTime)
+  #
+  nowTime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+  print earlierDay
+  print nowTime
 
 
-  ### The page variable is used to retreive page number
-  page = 1
-
-  ### Qeury api to understand how many pages exist by sampling page header
+  ### Query api to understand how many pages exist by sampling page header
   numEntriesPerPage = 100
 
-  results = runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID)
 
 
 
-  totalPages   = int(results['paginationOutput']['totalPages'])      # e.g: (6 pages)
-  totalEntries = int(results['paginationOutput']['totalEntries'])    # e.g: (515 entries)
+  #########################################################################
+  ### Initial run of runAPI() function to identify how many pages exist and
+  ### how many entries per page exist
+  ###
+  ### The page variable is used to retreive the total number of pages
+  page = 1
+  results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
 
+
+
+
+
+  try:
+    totalPages   = int(results['paginationOutput']['totalPages'])      # e.g: (6 pages)
+    totalEntries = int(results['paginationOutput']['totalEntries'])    # e.g: (515 entries)
+  except KeyError:
+    pass
 
   print "totalPages:   {0}".format(totalPages)
   print "totalEntries: {0}".format(totalEntries)
 
 
-  ### Get header information (e.g: ack, version, timestamp) 
+
+
+  ### Display header information (e.g: ack, version, timestamp) 
   getHEADER(results)
 
 
 
 
-  ### Now loop through total number of pages and get all sold items per page
+  ### Now loop through total number of pages found from inital run and get all sold items per page
   for page in range(1, totalPages+1):
 
     ### Get API Results
-    results = runAPI(page, numEntriesPerPage, minusDays, nowTime, categoryID)
+    results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
 
  
     ### Get Page Number 
@@ -302,7 +335,7 @@ def main():
 
 
     ### Show results from Ebay 
-    showResults(results)
+    showResults(results, File)
 
 
 
