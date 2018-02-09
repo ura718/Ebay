@@ -29,12 +29,19 @@ import os
 # Help Menu
 #
 def menu():
-  usage = "usage: %prog -c [category number]"
+  usage = """usage: %prog -d [number of days] -c [categoryid] \n  
+       -d optional, default is 30
+       -c required"""
+
   parser = OptionParser(usage=usage)
   parser.add_option("-c", action="store", type="int", dest="CategoryID")
   parser.add_option("-d", action="store", type="int", dest="days")
 
   (options, args) = parser.parse_args()
+
+  if len(args) != 1:
+    parser.error("Incorrect number of arguments")
+        
 
   return options.CategoryID, options.days
 
@@ -250,18 +257,13 @@ def main():
   if categoryID == None:
     categoryID = getCategoryIDFromFile()
 
-    #for k,v in categoryID.iteritems():
-    #  print k,v 
-
-
 
 
 
   ### The days variable is used to deduct number of days from today
   if days == None:
-      print "Provide number of days you want to search for"
-      sys.exit()
-
+      print "Query 30 days worth of sold items"
+      days = 30
 
 
 
@@ -276,13 +278,8 @@ def main():
 
 
   ### Calculate Todays Date and Time or time to which to search
-  #nowTime = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())  
-  #print "nowTime:    |{0}|".format(nowTime)
-  #
   nowTime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
-  print earlierDay
-  print nowTime
 
 
   ### Query api to understand how many pages exist by sampling page header
@@ -312,6 +309,10 @@ def main():
   print "totalPages:   {0}".format(totalPages)
   print "totalEntries: {0}".format(totalEntries)
 
+
+  ### If total entries per page returned are less than 100 then assign number of custom entries to totalEntries
+  if totalEntries < 100:
+    numEntriesPerPage = totalEntries 
 
 
 
