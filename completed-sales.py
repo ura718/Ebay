@@ -29,19 +29,13 @@ import os
 # Help Menu
 #
 def menu():
-  usage = """usage: %prog -d [number of days] -c [categoryid] \n  
-       -d optional, default is 30
-       -c required"""
+  usage = "usage: %prog -d [number of days] -c [categoryid]"
 
   parser = OptionParser(usage=usage)
   parser.add_option("-c", action="store", type="int", dest="CategoryID")
-  parser.add_option("-d", action="store", type="int", dest="days")
+  parser.add_option("-d", action="store", type="int", dest="days", default="30")
 
   (options, args) = parser.parse_args()
-
-  if len(args) != 1:
-    parser.error("Incorrect number of arguments")
-        
 
   return options.CategoryID, options.days
 
@@ -165,7 +159,6 @@ def getHEADER(results):
     print "Timestamp: %s " % results['timestamp']
     print "Version: %s   " % results['version']
     print
-    #print "-"*150
   except KeyError, e:
     print "[-] %s" % e
 
@@ -260,13 +253,6 @@ def main():
 
 
 
-  ### The days variable is used to deduct number of days from today
-  if days == None:
-      print "Query 30 days worth of sold items"
-      days = 30
-
-
-
   ### Create Empty File
   File = 'short-listings.txt'
   open(File, 'w').close()
@@ -297,22 +283,27 @@ def main():
   results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
 
 
+  #print len(results['searchResult']['item'])
+  #for i in range(len(results['searchResult']['item'])):
+  #    print i
 
 
 
   try:
     totalPages   = int(results['paginationOutput']['totalPages'])      # e.g: (6 pages)
     totalEntries = int(results['paginationOutput']['totalEntries'])    # e.g: (515 entries)
+
+    print "totalPages:   {0}".format(totalPages)
+    print "totalEntries: {0}".format(totalEntries)
+
   except KeyError:
     pass
 
-  print "totalPages:   {0}".format(totalPages)
-  print "totalEntries: {0}".format(totalEntries)
 
 
   ### If total entries per page returned are less than 100 then assign number of custom entries to totalEntries
-  if totalEntries < 100:
-    numEntriesPerPage = totalEntries 
+  #if totalEntries < 100:
+  #  numEntriesPerPage = totalEntries 
 
 
 
@@ -320,7 +311,17 @@ def main():
   getHEADER(results)
 
 
+  '''
+  while totalPages >= 0:
+    results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
+    for i in range(len(results['searchResult']['item'])):
+      print i, results['searchResult']['item'][i]['viewItemURL']  
 
+    totalPages = totalPages - 1
+
+  
+  sys.exit() 
+  '''
 
   ### Now loop through total number of pages found from inital run and get all sold items per page
   for page in range(1, totalPages+1):
