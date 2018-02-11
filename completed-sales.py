@@ -49,7 +49,8 @@ def menu():
 # Run Finding API for Ebay to search for 
 # completed items that were sold
 #
-def runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID):
+#def findingAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID):
+def findingAPI(page, earlierDay, nowTime, categoryID):
 
 
   ### Reference config file to get APPID
@@ -62,14 +63,14 @@ def runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID):
     'categoryId': categoryID,
     'itemFilter': [
       {'name': 'MinPrice',      'value': '30'},          # Minimum Price
-      {'name': 'MaxPrice',      'value': '1000'},        # Maximum Price
+      {'name': 'MaxPrice',      'value': '10000'},       # Maximum Price
       {'name': 'SoldItemsOnly', 'value': 'True'},        # Show only successfully sold items
       {'name': 'LocatedIn',     'value': 'US'},          # Located in United States
       {'name': 'StartTimeFrom', 'value': earlierDay},    # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-1T08:00:01')
       {'name': 'EndTimeTo',     'value': nowTime}        # Time in UTC format YYYY-MM-DDTHH:MM:SS.000Z (Z for Zulu Time). (e.g: '2018-01-19T14:30:01')
     ],
     'paginationInput': {
-      'entriesPerPage': numEntriesPerPage,
+      'entriesPerPage': 100,
       'pageNumber': page
       #'pageNumber': '1'                                 # e.g: custom page
     }
@@ -176,7 +177,7 @@ def showResults(results, File):
   
 
   
-  ### The (results['searchResult']['item']) is an array that holds many searches. 
+  ### The (results['searchResult']['item']) is an array that holds all sold items found per page. 
   ### We loop through this array and extract elements that we can work with
  
 
@@ -192,16 +193,32 @@ def showResults(results, File):
       data['currencyValue']        = results['searchResult']['item'][i]['sellingStatus']['currentPrice']['value']
       data['sellingState']         = results['searchResult']['item'][i]['sellingStatus']['sellingState']
       data['listingType']          = results['searchResult']['item'][i]['listingInfo']['listingType']
-      data['conditionDisplayName'] = results['searchResult']['item'][i]['condition']['conditionDisplayName']
+      #data['conditionDisplayName'] = results['searchResult']['item'][i]['condition']['conditionDisplayName']
       data['startTime']            = results['searchResult']['item'][i]['listingInfo']['startTime']
       data['endTime']              = results['searchResult']['item'][i]['listingInfo']['endTime']
-      data['watchCount']           = results['searchResult']['item'][i]['listingInfo']['watchCount']
+      #data['watchCount']           = results['searchResult']['item'][i]['listingInfo']['watchCount']
       data['viewItemURL']          = results['searchResult']['item'][i]['viewItemURL']
 
     except KeyError:
-      continue
+      #continue
+      raise
 
 
+
+    ### This means that conditionDisplayName is empty and it needs to have something
+    try:
+      data['conditionDisplayName'] = results['searchResult']['item'][i]['condition']['conditionDisplayName']
+    except KeyError:
+      data['conditionDisplayName'] = 'n/a'
+
+
+
+    ### This means that watchcount is empty and it needs to have something
+    try:
+      data['watchCount']           = results['searchResult']['item'][i]['listingInfo']['watchCount']
+    except KeyError:
+      data['watchCount']           = 'n/a'
+     
 
 
     ### Calculate how long it took to sell the item
@@ -252,7 +269,6 @@ def main():
 
 
 
-
   ### Create Empty File
   File = 'short-listings.txt'
   open(File, 'w').close()
@@ -268,24 +284,13 @@ def main():
 
 
 
-  ### Query api to understand how many pages exist by sampling page header
-  numEntriesPerPage = 100
-
-
-
-
   #########################################################################
-  ### Initial run of runAPI() function to identify how many pages exist and
+  ### Initial run of findingAPI() function to identify how many pages exist and
   ### how many entries per page exist
   ###
   ### The page variable is used to retreive the total number of pages
   page = 1
-  results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
-
-
-  #print len(results['searchResult']['item'])
-  #for i in range(len(results['searchResult']['item'])):
-  #    print i
+  results = findingAPI(page, earlierDay, nowTime, categoryID)
 
 
 
@@ -301,39 +306,20 @@ def main():
 
 
 
-  ### If total entries per page returned are less than 100 then assign number of custom entries to totalEntries
-  #if totalEntries < 100:
-  #  numEntriesPerPage = totalEntries 
-
-
 
   ### Display header information (e.g: ack, version, timestamp) 
   getHEADER(results)
 
 
-  '''
-  while totalPages >= 0:
-    results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
-    for i in range(len(results['searchResult']['item'])):
-      print i, results['searchResult']['item'][i]['viewItemURL']  
 
-    totalPages = totalPages - 1
+  while totalPages >= 1:
 
-  
-  sys.exit() 
-  '''
+    ### Results from findingAPI contain all sold items found per page
+    results = findingAPI(page, earlierDay, nowTime, categoryID)
 
-  ### Now loop through total number of pages found from inital run and get all sold items per page
-  for page in range(1, totalPages+1):
-
-    ### Get API Results
-    results = runAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID)
-
- 
-    ### Get Page Number 
     pageNumber = results['paginationOutput']['pageNumber']
-    print "Page Number: {0} Total Entries: {1} \n".format(pageNumber, totalEntries) 
-
+    print
+    print "Page Number: {0}".format(pageNumber) 
 
 
     ### Show results from Ebay 
@@ -341,17 +327,19 @@ def main():
 
 
 
-    ### Calculate how many entries are left to fit on one page
-    totalEntries = totalEntries - numEntriesPerPage
+    ### loop over number of sold items found per page
+    for i in range(len(results['searchResult']['item'])):
+      print i, results['searchResult']['item'][i]['viewItemURL']  
 
 
-
-    '''
-    pp = pprint.PrettyPrinter(indent=1)
-    pp.pprint(results)
-    '''
+    totalPages = totalPages - 1
+    page = page + 1
 
 
+  
+
+  #pp = pprint.PrettyPrinter(indent=1)
+  #pp.pprint(results)
 
 
 
