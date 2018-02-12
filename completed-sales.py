@@ -49,7 +49,6 @@ def menu():
 # Run Finding API for Ebay to search for 
 # completed items that were sold
 #
-#def findingAPI(page, numEntriesPerPage, earlierDay, nowTime, categoryID):
 def findingAPI(page, earlierDay, nowTime, categoryID):
 
 
@@ -224,6 +223,7 @@ def showResults(results, File):
     ### Calculate how long it took to sell the item
     try:
       totalSoldTime = calculateSoldTime((data['startTime']), (data['endTime']))
+      #totalSoldTime = data['startTime'] + ' ' + data['endTime']
     except:
       continue
 
