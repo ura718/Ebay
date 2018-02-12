@@ -5,7 +5,7 @@
 cat short-listings.txt |awk '{print $NF}' |cut -d/ -f5 > junk
 
 # Remove all dashes from file
-sed -i -e "s/-/ /g" junk
+sed -i '' "s/-/ /g" junk
 
 #
 # finds most commond used words
