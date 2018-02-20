@@ -110,8 +110,18 @@ def CalculateDate(days):
 #
 def calculateSoldTime(startTime, endTime):
 
+
+  '''
+  e.g: 2018-02-17T16:20:02.592Z
+    replace date/time by 'T' => [2018-02-17 16:20:02.592Z]
+    replace date/time by '.' => [2018-02-17 16:20:02 592Z] 
+    splity by spaces and get from [0:2] range which is only up to 2nd element excluding 3rd [2018-02-17 16:20:02]
+    parse string [2018-02-17 16:20:02] back to datetime format
+  ''' 
+
+
   startTime = ' '.join((startTime).replace('T', ' ').replace('.', ' ').split()[0:2])
-  endTime   = ' '.join((endTime).replace('T', ' ').replace('.', ' ').split()[0:2])
+  endTime   = ' '.join((endTime  ).replace('T', ' ').replace('.', ' ').split()[0:2])
 
   startTime = datetime.datetime.strptime(startTime, '%Y-%m-%d %H:%M:%S')
   endTime   = datetime.datetime.strptime(endTime, '%Y-%m-%d %H:%M:%S')
@@ -216,7 +226,7 @@ def showResults(results, File):
     try:
       data['watchCount']           = results['searchResult']['item'][i]['listingInfo']['watchCount']
     except KeyError:
-      data['watchCount']           = 'n/a'
+      data['watchCount']           = '0'
      
 
 
@@ -238,6 +248,10 @@ def showResults(results, File):
 
 
 
+#################################################
+#
+# Get Category ID from file - TEST FN
+#
 def getCategoryIDFromFile():
   print "Reading Category ID File"
   if os.path.isfile('categoryid.txt') == True:
@@ -270,7 +284,7 @@ def main():
 
 
   ### Create Empty File
-  File = 'short-listings.txt'
+  File = "sold-items-{0}-{1}.txt".format(categoryID,days)
   open(File, 'w').close()
 
 
