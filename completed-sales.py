@@ -3,7 +3,6 @@
 # -*- coding: utf-8 -*-
 
 '''
-Author: Yuri Medvinsky
 Info: 
   ise ebay api to search for completed items that were sold on ebay.
   Then print out information pertaining to those listings.
